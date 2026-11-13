@@ -1,17 +1,17 @@
-# MOA
+# MOA MVP
 
-MOAFANS 모바일 소셜 앱 프로토타입입니다. 스레드형 대화 피드와 사진 게시물, 숏폼 영상, 관심사 커뮤니티를 한 화면에서 경험할 수 있습니다.
+MOA is a mobile-first social app for discovering people through short video and connecting through text and photo posts. The MVP has five destinations: Home, Shorts, Create, Explore, and Profile. Standalone groups are deferred; interest filters organize posts and videos instead.
 
-## 실행
+## Prototype
 
-`index.html` 파일을 브라우저에서 열면 별도 빌드 과정 없이 확인할 수 있습니다.
+Open `outputs/index.html` in a browser. The prototype includes an interest-filtered Explore feed, a dedicated Shorts collection, post composer, comments, profile, and settings. Posts are currently held in page memory; this is not yet a multi-user backend.
 
-## 포함된 기능
+## Supabase setup
 
-- 추천 및 팔로잉 피드
-- 사진 게시물과 브라우저 내 숏폼 영상 미리보기
-- 관심사 커뮤니티: 언어교환, 여행, 요리, 뷰티, 피트니스
-- 탐색, 알림, 프로필 화면
-- 모바일 우선 반응형 레이아웃
+1. Create a Supabase project and configure Auth providers (Google, email, Kakao, Apple) in Supabase and each provider console.
+2. Run `supabase/schema.sql` in the Supabase SQL editor.
+3. Create a private `post-media` Storage bucket. Set file limits and allowed image/video MIME types. Add Storage RLS policies that let authenticated users write only to their own `{user_id}/...` folder.
+4. Connect the client using the project URL and publishable/anon key via environment configuration. Never expose the `service_role` key in browser code or this public repository.
+5. Replace prototype state with authenticated database queries and Storage uploads before relying on cross-device persistence.
 
-현재 데이터와 게시물은 브라우저 안에서만 동작하는 프로토타입입니다.
+The browser prototype does not currently authenticate users or persist posts remotely. Social sign-in, remote media storage, and cross-device sync need a Supabase project and provider credentials.
