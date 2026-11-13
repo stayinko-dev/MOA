@@ -26,3 +26,11 @@ create policy "users follow as self" on public.follows for insert with check(aut
 create policy "users unfollow as self" on public.follows for delete using(auth.uid()=follower_id);
 create policy "users read own notifications" on public.notifications for select using(auth.uid()=recipient_id);
 create policy "users update own notifications" on public.notifications for update using(auth.uid()=recipient_id) with check(auth.uid()=recipient_id);
+insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types) values ('post-media','post-media',false,52428800,array['image/jpeg','image/png','image/webp','image/heic','video/mp4','video/quicktime','video/webm']) on conflict(id) do update set public=false,file_size_limit=excluded.file_size_limit,allowed_mime_types=excluded.allowed_mime_types;
+create policy "authenticated users read post media" on storage.objects for select to authenticated using(bucket_id='post-media');
+create policy "users upload own post media" on storage.objects for insert to authenticated with check(bucket_id='post-media' and (storage.foldername(name))[1]=auth.uid()::text);
+create policy "users update own post media" on storage.objects for update to authenticated using(bucket_id='post-media' and (storage.foldername(name))[1]=auth.uid()::text) with check(bucket_id='post-media' and (storage.foldername(name))[1]=auth.uid()::text);
+create policy "users delete own post media" on storage.objects for delete to authenticated using(bucket_id='post-media' and (storage.foldername(name))[1]=auth.uid()::text);
+create or replace function public.handle_new_user() returns trigger language plpgsql security definer set search_path=public as $$ begin insert into public.profiles(id,username,display_name,avatar_url) values(new.id,coalesce(new.raw_user_meta_data->>'username','user_'||left(new.id::text,8)),coalesce(new.raw_user_meta_data->>'display_name',''),new.raw_user_meta_data->>'avatar_url') on conflict(id) do nothing; return new; end; $$;
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created after insert on auth.users for each row execute function public.handle_new_user();
