@@ -134,7 +134,7 @@ create policy "profiles read" on public.profiles for select using(true);
 drop policy if exists "profile owner update" on public.profiles;
 create policy "profile owner update" on public.profiles for update using(auth.uid()=id) with check(auth.uid()=id);
 drop policy if exists "posts visible" on public.posts;
-create policy "posts visible" on public.posts for select using(visibility='public' or auth.uid()=user_id or exists(select 1 from public.follows f where f.follower_id=auth.uid() and f.followed_id=user_id));
+create policy "posts visible" on public.posts for select using((visibility='public' or auth.uid()=user_id or exists(select 1 from public.follows f where f.follower_id=auth.uid() and f.followed_id=user_id)) and not exists(select 1 from public.blocks b where (b.blocker_id=auth.uid() and b.blocked_id=user_id) or (b.blocker_id=user_id and b.blocked_id=auth.uid())));
 drop policy if exists "post owner insert" on public.posts;
 create policy "post owner insert" on public.posts for insert with check(auth.uid()=user_id);
 drop policy if exists "post owner update" on public.posts;
@@ -234,7 +234,7 @@ insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values ('moa-media','moa-media',false,52428800,array['image/jpeg','image/png','image/webp','image/heic','video/mp4','video/quicktime','video/webm'])
 on conflict(id) do update set public=false,file_size_limit=excluded.file_size_limit,allowed_mime_types=excluded.allowed_mime_types;
 drop policy if exists "moa media read" on storage.objects;
-create policy "moa media read" on storage.objects for select to authenticated using(bucket_id='moa-media' and exists(select 1 from public.post_media pm join public.posts p on p.id=pm.post_id where pm.storage_path=name and (p.visibility='public' or p.user_id=auth.uid() or exists(select 1 from public.follows f where f.follower_id=auth.uid() and f.followed_id=p.user_id))));
+create policy "moa media read" on storage.objects for select to authenticated using(bucket_id='moa-media' and (exists(select 1 from public.post_media pm join public.posts p on p.id=pm.post_id where pm.storage_path=name and (p.visibility='public' or p.user_id=auth.uid() or exists(select 1 from public.follows f where f.follower_id=auth.uid() and f.followed_id=p.user_id))) or exists(select 1 from public.challenge_checkins ci where ci.media_path=name and public.is_challenge_member(ci.challenge_id))));
 drop policy if exists "moa media upload own folder" on storage.objects;
 create policy "moa media upload own folder" on storage.objects for insert to authenticated with check(bucket_id='moa-media' and (storage.foldername(name))[1]=auth.uid()::text);
 drop policy if exists "moa media update own folder" on storage.objects;
