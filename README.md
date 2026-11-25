@@ -1,18 +1,32 @@
-# MOA MVP
+# MOA 2.0 — Connect. Share. Experience.
 
-MOA is a mobile-first social app for discovering people through short video and connecting through text and photo posts. The MVP has five destinations: Home, Shorts, Create, Explore, and Profile. Standalone groups are deferred; interest filters organize posts and videos instead.
+Mobile-first social app concept centered on interest-based posts, meetups, and free challenges.
 
-## Prototype
+## Preview
 
-Open `outputs/index.html` in a browser. The prototype includes an interest-filtered Explore feed, a dedicated Shorts collection, post composer, comments, profile, and settings. Posts are currently held in page memory; this is not yet a multi-user backend.
+Open [`outputs/index.html`](outputs/index.html) in a browser. It is a front-end prototype with sample content and browser-local interactions. Accounts, shared posts, media storage, private group access, and notifications are **not connected** to Supabase yet. Do not treat preview interactions as persisted multi-user data.
 
-## Supabase setup
+## Product scope
 
-1. Create a Supabase project and configure Auth providers (Google, email, Kakao, Apple) in Supabase and each provider console.
-2. Run `supabase/schema.sql` in the Supabase SQL editor.
-3. The schema creates a private `post-media` Storage bucket (50 MB max; common image/video types) and policies for authenticated reads and owner-only writes under `{user_id}/...`.
-4. Connect the client using the project URL and publishable/anon key via environment configuration. Never expose the `service_role` key in browser code or this public repository.
-5. Replace prototype state with authenticated database queries and Storage uploads before relying on cross-device persistence.
+- Home: For You, Following, Latest; text, photo, and short-video posts; replies, likes, follows, reposts, saves, reports.
+- Explore: one search for posts, meetups, and challenges, filtered by interests.
+- Meetups: interest-based groups, public or approval-based joining, group posts, events, RSVP, and members.
+- Challenges: free challenges, membership, dated check-ins, progress, and completion badges.
+- Activities: joined groups, events, and challenges. Profile: interests, followers, and posts.
+- English and Korean UI shell.
 
-The browser prototype does not currently authenticate users or persist posts remotely. Social sign-in, remote media storage, and cross-device sync need a Supabase project and provider credentials.
+MOA 2.0 removes the dedicated Shorts feed and the Help Matching and Housing services. Short videos remain a media type within ordinary posts. Paid challenges, payments, realtime rooms/chat, and complex recommendations are deferred.
+
+## Supabase preparation
+
+1. Review `supabase/schema.sql` and apply it to a development Supabase project before production use.
+2. Configure Auth, then provide the project URL and publishable key through the app's deployment configuration. Never place the `service_role` key in browser code or this public repository.
+3. Connect the UI to Supabase Auth, Postgres, and Storage. The current HTML preview does not contain that client integration.
+4. Validate RLS for visibility, author-only edits, meetup membership, event RSVP, challenge check-ins, reports, and blocks with multiple test accounts before exposing private group content.
+
+The schema includes initial RLS policies and a private `moa-media` bucket. It has not been applied to or verified against the user's Supabase project. Review and migrate it in a development project first; application logic still needs to be wired to these tables.
+
+## Preserved previous version
+
+The pre-2.0 prototype is kept at `work/backups/moafans-pre-moa2.html` for rollback/reference. It is not the active product UI.
 
