@@ -18,7 +18,7 @@ create table if not exists public.posts (
   body text not null default '', language text not null default 'en' check(language in ('en','ko')),
   visibility text not null default 'public' check(visibility in ('public','followers')),
   created_at timestamptz not null default now(), updated_at timestamptz not null default now(),
-  check (char_length(body) <= 500), check (body <> '')
+  check (char_length(body) <= 500)
 );
 create table if not exists public.post_media (
   id uuid primary key default gen_random_uuid(), post_id uuid not null references public.posts(id) on delete cascade,
